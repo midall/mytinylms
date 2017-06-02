@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+!!!   W A R N I N G   !!!
+
+Note that this file is not an official part of TinyLMS.
+The ant scripts in this file reflect my current development environment.
+They may not be appropriate for you.
+
+
+
+I developed TinyLMS using NetBeans 5 on Mac OS X 10.4 (Tiger).
+Use of the same IDE to do changes on TinyLMS is highly recommended.
+
+
+To compile TinyLMS you need a J2SE 1.5 SDK and the Quaqua Look and Feel.
+
+Before you run TinyLMS from within an IDE, you must build the "jar" task.
+This will create the zip file lmshtml.zip.
+If you don't build this file, you will be able to start TinyLMS, but it will
+fail with an error message, when you attempt to export a course from it.
+
+Werner Randelshofer
+-->
+
+<!-- Written to assume that classpath is rooted in the current directory. -->
+<!-- So this should be OK if you make this script in the root of a filesystem. -->
+<!-- If not, you may prefer to adjust the basedir, or move some directories around. -->
+<!-- The idea is that both Ant and NetBeans have to know what the package root is -->
+<!-- for the classes in your application. -->
+<project basedir="." default="all" name="tinylms">
+
+    <!-- Don't worry if you don't know the Ant syntax completely or need help on some tasks! -->
+    <!-- The standard Ant documentation can be downloaded from AutoUpdate and -->
+    <!-- and then you can access the help in menu Help | Help Sets | Ant 1.5.1 Manual. -->
+
+    <target name="init">
+        <!-- You can set up any variables you want used throughout the script here. -->
+        <property name="hello" value="world"/>
+        <property name="versionNumber" value="1.9"/>
+        <property name="versionDate" value="2011-07-06"/>
+        <property name="version" value="${versionNumber} ${versionDate}"/>
+        <property name="lib" value="lib"/>
+        <property name="resrc" value="resources"/>
+        <property name="src" value="src"/>
+        <property name="build" value="build"/>
+        <property name="classes" value="build/classes"/>
+        <property name="dist" value="dist"/>
+        <property name="author" value="Werner Randelshofer"/>
+        <!-- To use e.g. Jikes, uncomment this line. -->
+        <!-- (Or make the same change in Tools | Options | Ant Settings | Properties.) -->
+        <!-- <property name="build.compiler" value="jikes"/> -->
+        <!-- You might like to set up some overridable paths, etc.: -->
+        <!-- <property name="mylib" value="../lib/mylib.jar"/> -->
+        <property name="keystore.file" value="../../../_Keystore/JavaKeystore"/>
+        <property name="keystore.alias" value="werner"/>
+        <property name="keystore.storepass" value="werner"/>
+        
+        <!-- Compilation properties -->
+        <!-- ====================== -->
+        <property name="debug" value="true"/>
+
+        <property name="j2se4" value="${osx10.5}/System/Library/Frameworks/JavaVM.framework/Versions/1.4.2" />
+        <property name="j2se5" value="${osx10.5}/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0" />
+        <property name="j2se6" value="/System/Library/Frameworks/JavaVM.framework/Versions/1.6" />
+    </target>
+
+    <target depends="init" name="compile">
+        <mkdir dir="${classes}"/>
+        <mkdir dir="${classes}//ch/randelshofer/scorm"/>
+        <zip basedir="${resrc}/lmshtml" compress="false" destfile="${classes}/lmshtml.zip">
+            <exclude name="**/.*"/>
+            <exclude name="**/*.mno"/>
+        </zip>
+        <!-- Both srcdir and destdir should be package roots. -->
+        <!-- They could be different of course; in that case NetBeans can also be set -->
+        <!-- up to compile to a different filesystem in the same way; see Compiler Types: -->
+        <!--javac bootclasspath="/System/Library/Frameworks/JavaVM.framework/Versions/1.5/Classes/classes.jar:/System/Library/Frameworks/JavaVM.framework/Versions/1.5/Classes/ui.jar" -->
+        <!--javac
+                debug="true" deprecation="true" optimize="true" 
+                destdir="${classes}" srcdir="${src}" 
+                source="1.5" target="1.5" encoding="UTF-8"-->
+        <javac bootclasspath="${j2se5}/Classes/classes.jar:${j2se5}/Classes/ui.jar"
+            classpath="${j2se5}/Classes/classes.jar:${j2se5}/Classes/ui.jar"
+                executable="${j2se6}/Home/bin/javac" fork="true"
+                source="1.5" target="1.5" encoding="UTF-8"
+                srcdir="${src}" destdir="${classes}"
+                debug="${debug}" optimize="true"
+                extdirs="."
+                deprecation="true"
+                >
+            <compilerarg line="-endorseddirs ."/>
+            <compilerarg line="-J-Xmx512M"/>
+
+            <!-- To add something to the classpath: -->
+            <classpath>
+                <!--pathelement location="${lib}/iText-2.1.4.jar"/-->
+                <pathelement location="${lib}/bcmail-jdk15-141.jar"/>
+                <pathelement location="${lib}/bcprov-jdk15-141.jar"/>
+                <pathelement location="${lib}/jai_core.jar"/>
+                <pathelement location="${lib}/quaqua.jar"/>
+                <pathelement location="${lib}/minium.jar"/>
+                <pathelement location="${lib}/MRJAdapter.jar"/>
+            </classpath>
+            <!-- To exclude some files: -->
+            <!-- <exclude name="com/foo/SomeFile.java"/><exclude name="com/foo/somepackage/"/> -->
+            <exclude name="gnu/java/security/provider/SHATest.java"/>
+        </javac>
+        <copy todir="${classes}">
+            <fileset dir="${src}">
+                <include name="resources/**"/>
+                <include name="ch/**/*.properties"/>
+                <include name="ch/**/*.png"/>
+                <include name="ch/**/*.gif"/>
+                <include name="ch/**/*.jpg"/>
+                <include name="com/lowagie/**/*"/>
+                <exclude name="**/.*"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+     </target>
+
+    <target depends="init,compile" name="jar">
+        <mkdir dir="${lib}"/>
+        <!-- To make a standalone app: -->
+        <!-- 1. Create a myapp.mf manifest somewhere. -->
+        <!-- 2. Put in it two lines: -->
+        <!-- Manifest-Version: 1.0 -->
+        <!-- Main-Class: com.foo.Main -->
+        <!-- 3. Pass to <jar>: manifest="myapp.mf" -->
+        <jar basedir="${classes}" compress="true" jarfile="${lib}/tinylms.jar">
+            <manifest>
+                <attribute name="Built-By" value="${author}"/>
+                <attribute name="Main-Class" value="ch.randelshofer.scorm.TinyLMSApp"/>
+                <attribute name="Class-Path" value="quaqua.jar lib/quaqua.jar ../lib/quaqua.jar MRJAdapter.jar lib/MRJAdapter.jar ../lib/MRJAdapter.jar"/>
+                <attribute name="Specification-Title" value="TinyLMS"/>
+                <attribute name="Specification-Version" value="${version}"/>
+                <attribute name="Specification-Vendor" value="${author}"/>
+                <attribute name="Implementation-Title" value="TinyLMS"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Implementation-Vendor" value="${author}"/>
+            </manifest>
+            <exclude name="**/.*"/>
+            <exclude name="**/*.java"/>
+            <exclude name="**/*.form"/>
+            <exclude name="**/*.mno"/>
+            <exclude name="**/package.html"/>
+            <exclude name="lmshtml"/>
+        </jar>
+    </target>
+
+    <target depends="init,jar" description="Build everything." name="all">
+        <echo message="Application built. Hello ${hello}!"/>
+    </target>
+
+    <target depends="init" description="Try running it." name="run-compiled">
+        <java classname="ch.randelshofer.scorm.TinyLMSApp" failonerror="true" fork="true">
+            <classpath>
+                <pathelement location="${classes}"/>
+                <pathelement location="${lib}/bcmail-jdk15-141.jar"/>
+                <pathelement location="${lib}/bcprov-jdk15-141.jar"/>
+                <pathelement location="${lib}/quaqua.jar"/>
+                <pathelement location="${lib}/MRJAdapter.jar"/>
+                <!--pathelement location="${lib}/core-renderer.jar"/-->
+                <pathelement location="${lib}/jai_core.jar"/>
+                <pathelement location="${lib}/minium.jar"/>
+                <pathelement location="${lib}/swing-layout.jar"/>
+                <!--pathelement location="${lib}/tagsoup-1.1.3.jar"/-->
+            </classpath>
+            <jvmarg value="-Djava.library.path=${lib}"/>
+            <!--jvmarg value="-Duser.language=sl"/-->
+            <!-- Pass some args, perhaps: -->
+            <!--<arg value="-myfile"/> --> 
+            <!-- Will be given as an absolute path: -->
+            <!--<arg file="myfile.txt"/>-->
+        </java>
+    </target>
+    
+   <target depends="clean,jar" description="Bundle the software." name="bundle Mac OS X">
+       <mkdir dir="${dist}"/>
+       <mkdir dir="${build}/Tiny LMS ${versionNumber}"/>
+        <copy todir="${build}/Tiny LMS ${versionNumber}">
+            <fileset dir="${src}/..">
+                <include name="*.html"/>
+            </fileset>
+        </copy>
+       <mkdir dir="${build}/Tiny LMS ${versionNumber}/Tiny LMS.app"/>
+        <copy todir="${build}/Tiny LMS ${versionNumber}/Tiny LMS.app">
+            <fileset dir="resources/OSX Application Bundle">
+            </fileset>
+        </copy>
+        <chmod perm="ugo+x"
+            file="${build}/Tiny LMS ${versionNumber}/Tiny LMS.app/Contents/MacOS/JavaApplicationStub"
+        />
+        <copy todir="${build}/Tiny LMS ${versionNumber}/Tiny LMS.app/Contents/Resources/Java">
+            <fileset dir="${lib}">
+                <include name="libquaqua*.jnilib"/>
+                <include name="quaqua.jar"/>
+                <include name="tinylms.jar"/>
+                <include name="MRJAdapter.jar"/>
+            </fileset>
+        </copy>
+        <delete file="${dist}/tinylms-${versionNumber}mac.dmg"/>
+        <exec executable="hdiutil">
+            <arg value="create"/>
+            <arg value="-srcfolder"/>
+            <arg value="${build}/Tiny LMS ${versionNumber}"/>
+            <arg value="-format"/>
+            <arg value="UDCO"/>
+            <arg value="${dist}/tinylms-${versionNumber}mac.dmg"/>
+        </exec>
+        <exec executable="hdiutil">
+            <arg value="internet-enable"/>
+            <arg value="${dist}/tinylms-${versionNumber}mac.dmg"/>
+        </exec>
+    </target>
+    
+    <target depends="init,jar" name="jar-signed">
+        <!---
+        <unjar src="${lib}/iText-2.1.4.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        -->
+        <unjar src="${lib}/bcmail-jdk15-141.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        <unjar src="${lib}/bcprov-jdk15-141.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        <unjar src="${lib}/MRJAdapter.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        <unjar src="${lib}/minium.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        <unjar src="${lib}/quaqua.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        <unjar src="${lib}/swing-layout.jar" dest="${classes}" >
+            <patternset >
+            <exclude name="META-INF/**"/>
+            </patternset>
+        </unjar>
+        
+        <!-- To make a standalone app: -->
+        <!-- 1. Create a tinylms.mf manifest somewhere. -->
+        <!-- 2. Put in it: -->
+        <!--    Manifest-Version: 1.0 -->
+        <!--    Main-Class: com.foo.Main -->
+        <!-- 3. Pass to <jar>: manifest="tinylmsmanifest.mf" -->
+        <jar destfile="${dist}/tinylms_signed.jar" basedir="${classes}">
+            <manifest>
+                <attribute name="Main-Class" value="ch.randelshofer.tinylms.Main" />
+                <attribute name="Built-By" value="${author}"/>
+                <attribute name="Implementation-Vendor" value="${author}"/>
+               <attribute name="Implementation-Version" value="${version}"/>
+             </manifest>
+        </jar>
+          <signjar alias="${keystore.alias}" 
+                storepass="${keystore.storepass}"
+                keystore="${keystore.file}" 
+                jar="${dist}/tinylms_signed.jar"
+                
+                >
+        </signjar>        
+        <jar basedir="${lib}" compress="true"
+             jarfile="${dist}/libquaqua.jnilib_signed.jar" 
+        >
+            <include name="libquaqua.jnilib"/>
+        </jar>
+        <signjar alias="${keystore.alias}" 
+            storepass="${keystore.storepass}"
+            keystore="${keystore.file}" 
+            jar="${dist}/libquaqua.jnilib_signed.jar"
+
+            >
+        </signjar>        
+        <jar basedir="${lib}" compress="true"
+             jarfile="${dist}/libquaqua64.jnilib_signed.jar" 
+        >
+            <include name="libquaqua64.jnilib"/>
+        </jar>
+        <signjar alias="${keystore.alias}" 
+            storepass="${keystore.storepass}"
+            keystore="${keystore.file}" 
+            jar="${dist}/libquaqua64.jnilib_signed.jar"
+
+            >
+        </signjar>        
+      </target>
+   <target depends="clean,jar" description="Bundle the software." name="bundle Java">
+       <mkdir dir="${dist}"/>
+       <mkdir dir="${build}/Tiny LMS ${versionNumber}"/>
+        <copy todir="${build}/Tiny LMS ${versionNumber}">
+            <fileset dir="${src}/..">
+                <include name="*.html"/>
+            </fileset>
+        </copy>
+       <unzip src="${lib}/MRJAdapter.jar"  dest="${classes}"/>
+       <unzip src="${lib}/minium.jar"  dest="${classes}"/>
+       <unzip src="${lib}/quaqua.jar"  dest="${classes}"/>
+       <unzip src="${lib}/swing-layout.jar"  dest="${classes}"/>
+       <!--unzip src="${lib}/tagsoup-1.1.3.jar"  dest="${classes}"/-->
+       <copy file="${lib}/libquaqua.jnilib"  todir="${build}/Tiny LMS ${versionNumber}"/>
+       <copy file="${lib}/libquaqua64.jnilib"  todir="${build}/Tiny LMS ${versionNumber}"/>
+       <jar basedir="${classes}" compress="true" jarfile="${build}/Tiny LMS ${versionNumber}/Tiny LMS.jar">
+           <manifest>
+               <attribute name="Main-Class" value="ch.randelshofer.scorm.TinyLMSApp"/>
+               <attribute name="Class-Path" value="/System/Library/Java/"/>
+                <attribute name="Specification-Title" value="TinyLMS"/>
+                <attribute name="Specification-Version" value="${version}"/>
+                <attribute name="Specification-Vendor" value="${author}"/>
+                <attribute name="Implementation-Title" value="TinyLMS"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Implementation-Vendor" value="${author}"/>
+           </manifest>
+            <exclude name="**/.*"/>
+            <exclude name="**/*.java"/>
+            <exclude name="**/*.form"/>
+            <exclude name="**/*.mno"/>
+            <exclude name="**/package.html"/>
+        </jar>
+        <zip destfile="${dist}/tinylms-${versionNumber}.zip">
+            <fileset dir="${build}">
+                <include name="Tiny LMS ${versionNumber}/**"/>
+                <exclude name="**/.*"/>
+            </fileset>
+        </zip>
+    </target>
+   <target depends="init" description="Bundle the software." name="bundle Src">
+       <mkdir dir="${dist}"/>
+        <zip destfile="${dist}/tinylms-${versionNumber}src.zip">
+            <fileset dir=".">
+                <exclude name="build/**"/>
+                <exclude name="dist/**"/>
+                <exclude name="**/.*"/>
+            </fileset>
+        </zip>
+    </target>
+   <target depends="bundle Java,bundle Mac OS X, bundle Java Web Start, bundle Src" description="Bundle the software." name="bundle All">
+    </target>
+
+    <target depends="init" description="Javadoc for my API." name="javadoc">
+        <mkdir dir="${dist}/javadoc"/>
+        <javadoc destdir="${dist}/javadoc" footer="&lt;font size=-2>Copyright 2003-2006 (c) Werner Randelshofer.&lt;br>All rights reserved.&lt;/font>" header="TinyLMS ${version}" 
+packagenames="ch.randelshofer.gui.*,ch.randelshofer.io.*,ch.randelshofer.scorm.*,ch.randelshofer.scorm.cam.*,ch.randelshofer.util.*" 
+windowtitle="TinyLMS ${version}">
+            <sourcepath>
+                <pathelement location="."/>
+            </sourcepath>
+        </javadoc>
+    </target>
+   <target depends="clean,jar-signed" description="Bundle the software." name="bundle Java Web Start">
+       <mkdir dir="${dist}"/>
+       <delete dir="${dist}/TinyLMS ${version}jws"/>
+       <mkdir dir="${dist}/TinyLMS ${version}jws"/>
+        <copy todir="${dist}/TinyLMS ${version}jws">
+            <fileset dir="${dist}">
+                <include name="*_signed.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="${dist}/TinyLMS ${version}jws">
+            <fileset dir="resources/Java Web Start Bundle">
+            </fileset>
+        </copy>
+        <zip destfile="${dist}/tinylms-${version}jws.zip">
+            <fileset dir="${dist}">
+                <include name="TinyLMS ${version}jws/**"/>
+                <exclude name="**/.*"/>
+            </fileset>
+        </zip>
+    </target>
+
+    <target depends="init" description="Clean all build products." name="clean">
+        <delete dir="${build}"/>
+    </target>
+</project>

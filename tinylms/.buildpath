@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry kind="lib" path="libsrc/bcmail-jdk15-141.zip"/>
+	<buildpathentry kind="lib" path="libsrc/bcprov-jdk15-141.zip"/>
+	<buildpathentry kind="lib" path="resources/Multilingual Tutorial.zip"/>
+	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
+</buildpath>

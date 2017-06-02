@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JNLP File for JHotDraw Sample Application -->
+<jnlp
+  spec="1.5.0+"
+  codebase="http://www.randelshofer.ch/tinylms/jws"
+  href="tinylms.jnlp">
+  <information>
+    <title>TinyLMS</title>
+    <vendor>Werner Randelshofer</vendor>
+    <homepage href="http://www.randelshofer.ch/tinylms"/>
+    <description kind="short">TinyLMS</description>
+    <description kind="one-line">TinyLMS a tiny learning management system for SCORM learning content.</description>
+    <description kind="tooltip">TinyLMS</description>
+    <offline-allowed/>
+    <shortcut online="false">
+    	<desktop/>
+    	<menu submenu="TinyLMS"/>
+    </shortcut>
+  </information>
+  <security> 
+      <all-permissions/> 
+  </security> 
+  <resources>
+    <j2se version="1.5+" initial-heap-size="64m" max-heap-size="912m" />
+ 	<nativelib href="libquaqua.jnilib_signed.jar"/> 
+ 	<nativelib href="libquaqua64.jnilib_signed.jar"/> 
+ 	<jar href="tinylms_signed.jar"/>
+  </resources>
+  <application-desc main-class="ch.randelshofer.tinylms.Main"/>
+</jnlp> 

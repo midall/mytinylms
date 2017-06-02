@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TinyLMS version="1"><organization structure="hierarchical" sequencing="automatic"/><authentication login="automatic"/><debugging loglevel="0" infoButton="false"/><locale>en</locale><layout><toc width="192"/><nav height="18"/><page width="*" height="*"/></layout><users/></TinyLMS>
