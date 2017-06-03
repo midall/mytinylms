@@ -1,4 +1,4 @@
-# MyTINYLMS
+# MyTINYLMS Project
 
 ## Description
 TinyLMS player
